@@ -122,9 +122,30 @@ def detect_sheet(file_name: str, sheet_name: str, df: pd.DataFrame) -> Detection
     det.profile, det.data_type, det.distributor = key, dtype, dist
     det.confidence, det.score, det.header_row, det.notes = conf, round(best, 2), hrow, note
     det.status = "Detected" if conf == "High" else "Needs confirmation"
-    if key == "BLT_STOCK" and sheet_name.strip().lower() not in [s.lower() for s in BLT_STOCK_SHEETS]:
-        det.status = "Ignored: sheet BLT bukan principal G2G"
     return det
+
+
+def resolve_blt_stock_sheets(dets: List[Detection]) -> None:
+    """Decide which BLT stock sheets of ONE workbook to use (mutates the detections).
+
+    BLT sometimes sends one workbook with a sheet per principal. Rules:
+      * a sheet named like BLT_STOCK_SHEETS (G2G) exists -> use only those, ignore the other BLT sheets;
+      * no such sheet but exactly one BLT stock sheet   -> use it whatever it is called (e.g. 'Sheet1');
+      * no such sheet and several BLT stock sheets      -> ask for confirmation (never guess which principal).
+    """
+    blt = [d for d in dets if d.profile == "BLT_STOCK" and d.processable]
+    if len(blt) <= 1:
+        return
+    allowed = {n.strip().lower() for n in BLT_STOCK_SHEETS}
+    named = [d for d in blt if d.sheet_name.strip().lower() in allowed]
+    if named:
+        for d in blt:
+            if d not in named:
+                d.status = "Ignored: sheet BLT bukan principal G2G"
+    else:
+        for d in blt:
+            d.confidence, d.status = "Review", "Needs confirmation"
+            d.notes = "Ada beberapa sheet stok BLT dan tidak ada yang bernama G2G: centang hanya sheet principal G2G"
 
 
 def apply_override(det: Detection, df: pd.DataFrame, distributor: str, data_type: str) -> Detection:

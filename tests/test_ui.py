@@ -15,8 +15,8 @@ MAPFILE = os.path.join(SAMPLES, "Book2.xlsx")
 have = os.path.exists(os.path.join(SAMPLES, "SJP_Sales.xlsx"))
 pytestmark = pytest.mark.skipif(not have, reason="sample files not available")
 
-PAGES = ["app.py", "pages/1_Upload_Files.py", "pages/2_Sales_Compilation.py", "pages/3_Stock_Compilation.py",
-         "pages/4_SKU_Mapping.py", "pages/5_Validation_Report.py", "pages/6_Download_Center.py"]
+PAGES = ["views/dashboard.py", "views/upload_files.py", "views/sales_compilation.py", "views/stock_compilation.py",
+         "views/sku_mapping.py", "views/validation_report.py", "views/download_center.py"]
 
 
 @pytest.fixture(scope="module")
@@ -50,7 +50,7 @@ def test_page_renders_with_data(page, result):
     assert not at.exception, [e.value for e in at.exception]
 
 
-@pytest.mark.parametrize("page", PAGES[2:3] + PAGES[3:4] + PAGES[5:])
+@pytest.mark.parametrize("page", PAGES[2:4] + PAGES[5:])
 def test_data_pages_show_hint_without_data(page):
     at = run_page(page)
     assert not at.exception
@@ -58,7 +58,7 @@ def test_data_pages_show_hint_without_data(page):
 
 
 def test_dashboard_kpis_and_warnings(result):
-    at = run_page("app.py", result)
+    at = run_page("views/dashboard.py", result)
     labels = [m.label for m in at.metric]
     assert {"Total file diunggah", "Total record Sales", "Total record Stock", "Sheet berhasil diproses",
             "File/sheet gagal", "SKU belum ter-mapping"} <= set(labels)
@@ -66,7 +66,7 @@ def test_dashboard_kpis_and_warnings(result):
 
 
 def test_download_center_has_three_exact_files(result):
-    at = run_page("pages/6_Download_Center.py", result)
+    at = run_page("views/download_center.py", result)
     assert not at.exception
     from streamlit.testing.v1.element_tree import ElementTree  # noqa: F401
     labels = [b.label for b in at.get("download_button")]
@@ -77,6 +77,13 @@ def test_download_blocked_when_critical_rows(result):
     import copy
     r = copy.deepcopy(result)
     r.sales.loc[0, "is_valid"] = False
-    at = run_page("pages/6_Download_Center.py", r)
+    at = run_page("views/download_center.py", r)
     assert any("diblokir" in e.value for e in at.error)
     assert not at.get("download_button")
+
+
+def test_router_app_renders_default_page_with_menu_and_branding(result):
+    at = run_page("app.py", result)
+    assert not at.exception, [e.value for e in at.exception]
+    assert any(m.label == "Total record Sales" for m in at.metric)       # dashboard is the default page
+    assert any(d.label == "Tanggal proses" for d in at.sidebar.date_input)

@@ -1,10 +1,19 @@
+# ---- Main area ---------------------------------------------------------------
 [theme]
 base = "light"
-primaryColor = "#2F5D8A"
+primaryColor = "#2F5D8A"            # buttons, links, active elements
 backgroundColor = "#FFFFFF"
 secondaryBackgroundColor = "#F4F5F7"
 textColor = "#23272F"
-font = "sans serif"
+font = "sans serif"                 # e.g. "Nunito:https://fonts.googleapis.com/css2?family=Nunito&display=swap"
+metricValueFontSize = "1.6rem"      # size of the big numbers on the KPI cards
+
+# ---- Sidebar (menu) ----------------------------------------------------------
+[theme.sidebar]
+backgroundColor = "#F4F5F7"
+secondaryBackgroundColor = "#E8EAED"
+textColor = "#23272F"               # menu text colour
+primaryColor = "#2F5D8A"
 
 [server]
 maxUploadSize = 200

@@ -12,7 +12,9 @@ D = sys.argv[1] if len(sys.argv) > 1 else "/mnt/user-data/uploads"
 P = lambda f: os.path.join(D, f)
 num = lambda s: pd.to_numeric(s.astype(str).str.replace("PCS", "", regex=False).str.strip().replace({"-": "0"}), errors="coerce")
 
-files = [FileInput(os.path.basename(p), open(p, "rb").read()) for p in sorted(glob.glob(D + "/*.xls*"))]
+# only the original sample set; later daily files (Lap_Stock_*) and the mapping file are not part of this benchmark
+files = [FileInput(os.path.basename(p), open(p, "rb").read()) for p in sorted(glob.glob(D + "/*.xls*"))
+         if not os.path.basename(p).startswith(("Lap_Stock", "Book2"))]
 res = compile_files(files, run_date=dt.date(2026, 11, 12))
 S, K = res.sales, res.stock
 rows = []

@@ -70,12 +70,15 @@ def detect_books(books: Dict[str, Book], overrides: Optional[dict] = None) -> Li
             dets.append(fd.Detection(name, "*", status=f"Ignored: file identik dengan {dup_of}"))
             continue
         seen_hash[book.sha256] = name
+        book_dets: List[fd.Detection] = []
         for sh in book.sheet_names:
             df = book.sheet(sh)
             det = fd.detect_sheet(name, sh, df)
             if (name, sh) in overrides:
                 det = fd.apply_override(det, df, *overrides[(name, sh)])
-            dets.append(det)
+            book_dets.append(det)
+        fd.resolve_blt_stock_sheets([d for d in book_dets if d.confidence != "Manual"])
+        dets.extend(book_dets)
     return dets
 
 

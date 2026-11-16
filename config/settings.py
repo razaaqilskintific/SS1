@@ -20,3 +20,11 @@ UNMAPPED_POLICY = os.environ.get("DSSC_UNMAPPED_POLICY", "passthrough_flagged")
 HEADER_SCAN_ROWS = 40       # rows scanned when looking for a header row
 DETECT_HIGH = 0.85          # structural match >= this -> High confidence
 DETECT_REVIEW = 0.50        # structural match >= this -> needs confirmation
+
+# ---- branding (replace the files in assets/ with your own; same names, no code change needed)
+ASSETS_DIR = BASE_DIR / "assets"
+LOGO_PATH = ASSETS_DIR / "logo.png"       # shown at the top of the sidebar, above the menu
+ICON_PATH = ASSETS_DIR / "icon.png"       # optional small icon when the sidebar is collapsed
+BANNER_PATH = ASSETS_DIR / "banner.jpg"   # wide photo shown under every page title
+BANNER_HEIGHT = 150                       # px, the photo is centre-cropped to a wide strip
+PAGE_ICON = "📊"                          # browser-tab icon

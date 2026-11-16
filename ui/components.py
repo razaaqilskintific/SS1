@@ -1,35 +1,67 @@
-"""Reusable UI pieces: page chrome, pagination, small helpers."""
+"""Reusable UI pieces: page chrome, banner, pagination, small helpers."""
 from __future__ import annotations
 
 import datetime as dt
+import io
 
 import pandas as pd
 import streamlit as st
+from PIL import Image
 
+from config import settings
 from config.settings import APP_NAME
 
+# ---------------------------------------------------------------- look & feel
+# Colours/fonts of the whole app live in .streamlit/config.toml ([theme] and [theme.sidebar]).
+# This CSS only covers what the theme file cannot: spacing, cards and the font of the menu links.
 _CSS = """
 <style>
 .block-container {padding-top: 2rem; max-width: 1400px;}
 h1, h2, h3 {color: #23272F; font-weight: 600; letter-spacing: -0.01em;}
 [data-testid="stMetric"] {background: #F4F5F7; border: 1px solid #E3E5E9; padding: 14px 18px; border-radius: 10px;}
 [data-testid="stMetricLabel"] {color: #5B6270;}
-[data-testid="stSidebar"] {background: #F4F5F7;}
+/* ---- sidebar menu text: change size / weight / colour here ---- */
+[data-testid="stSidebarNavLink"] span {font-size: 0.98rem; font-weight: 500;}
+[data-testid="stSidebarNavLink"][aria-current="page"] span {font-weight: 700;}
 .small-note {color: #5B6270; font-size: 0.85rem;}
 </style>
 """
 
 
-def page_setup(title: str, icon: str = "📊") -> None:
-    st.set_page_config(page_title=f"{title} · {APP_NAME}", page_icon=icon, layout="wide")
+def chrome() -> None:
+    """Global elements shared by all pages. Called once from app.py (the router)."""
     st.markdown(_CSS, unsafe_allow_html=True)
+    if settings.LOGO_PATH.exists():
+        icon = str(settings.ICON_PATH) if settings.ICON_PATH.exists() else None
+        st.logo(str(settings.LOGO_PATH), size="large", icon_image=icon)
     with st.sidebar:
-        st.markdown(f"**{APP_NAME}**")
+        st.divider()
         st.date_input("Tanggal proses", value=dt.date.today(), key="run_date", format="DD/MM/YYYY",
                       help="Dipakai untuk memeriksa tanggal mendatang dan 'bukan bulan berjalan'.")
 
 
+@st.cache_data(show_spinner=False)
+def _banner_bytes(path: str, mtime: float, height: int) -> bytes:
+    """Centre-crop the photo to a wide strip so any picture fits the header nicely."""
+    img = Image.open(path).convert("RGB")
+    target_ratio = 1400 / height
+    w, h = img.size
+    if w / h > target_ratio:                       # too wide -> crop sides
+        nw = int(h * target_ratio)
+        img = img.crop(((w - nw) // 2, 0, (w + nw) // 2, h))
+    else:                                          # too tall -> crop top/bottom
+        nh = int(w / target_ratio)
+        img = img.crop((0, (h - nh) // 2, w, (h + nh) // 2))
+    img = img.resize((1400, height))
+    buf = io.BytesIO()
+    img.save(buf, "JPEG", quality=88)
+    return buf.getvalue()
+
+
 def page_header(title: str, subtitle: str = "") -> None:
+    p = settings.BANNER_PATH
+    if p.exists():
+        st.image(_banner_bytes(str(p), p.stat().st_mtime, settings.BANNER_HEIGHT), width="stretch")
     st.title(title)
     if subtitle:
         st.markdown(f'<p class="small-note">{subtitle}</p>', unsafe_allow_html=True)

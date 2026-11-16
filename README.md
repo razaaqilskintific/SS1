@@ -51,7 +51,7 @@ python scripts/reconcile_extraction.py /path   # rekonsiliasi ekstraksi vs data 
 pip install -r requirements.txt
 streamlit run app.py
 ```
-Halaman: Dashboard (app.py) -> Upload Files -> Sales Compilation -> Stock Compilation -> SKU Mapping -> Validation Report -> Download Center.
+Halaman (folder `views/`, menu didefinisikan di `app.py`): Dashboard -> Upload Files -> Sales Compilation -> Stock Compilation -> SKU Mapping -> Validation Report -> Download Center.
 
 ## Mapping dari Google Sheets (disarankan)
 1. Sheet mapping dibagikan "Siapa saja yang memiliki link -> Pelihat". Kolom: `Kode DST` + `Kode HO` (atau `Kode Asli` + `SKU Fix`).
@@ -69,3 +69,13 @@ Halaman: Dashboard (app.py) -> Upload Files -> Sales Compilation -> Stock Compil
 1. Push repo ke GitHub (file Excel distributor TIDAK ikut karena `.gitignore`).
 2. https://share.streamlit.io -> Create app -> pilih repo & branch, Main file path: `app.py`.
 3. Advanced settings -> Secrets: isi `MAPPING_SHEET_URL`.
+
+## Mengubah tampilan
+| Yang ingin diubah | Di mana |
+|---|---|
+| Nama & ikon menu kiri (mis. "app" -> "Dashboard"), urutan, pengelompokan | `app.py` -> dictionary `MENU` (`title=`, `icon=`) |
+| Warna & font menu, warna tombol, ukuran angka KPI | `.streamlit/config.toml` -> `[theme.sidebar]` dan `[theme]` |
+| Ukuran/ketebalan tulisan menu | `ui/components.py` -> bagian `/* sidebar menu text */` di `_CSS` |
+| Logo di atas menu | ganti `assets/logo.png` (opsional `assets/icon.png`) |
+| Foto header di semua halaman | ganti `assets/banner.jpg` (dipotong otomatis jadi strip lebar; tinggi: `BANNER_HEIGHT` di `config/settings.py`) |
+| Judul tab browser / ikon tab | `config/settings.py` -> `APP_NAME`, `PAGE_ICON` |

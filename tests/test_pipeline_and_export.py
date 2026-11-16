@@ -104,3 +104,16 @@ def test_same_data_in_two_different_files_not_double_counted(tmp_path):
                       run_date=RUN)
     assert len(r.sales) == 77
     assert "DUPLICATE_SOURCE" in set(r.issues.code)
+
+
+def test_blt_stock_single_sheet_file_from_distributor(tmp_path):
+    f = os.path.join(SAMPLES, "Lap_Stock_14_November_2026__G2Gblt.xlsx")
+    if not os.path.exists(f):
+        pytest.skip("BLT single-sheet sample not available")
+    r = compile_files([FileInput("Lap Stock 14 November 2026, G2Gblt.xlsx", open(f, "rb").read())], run_date=dt.date(2026, 11, 16))
+    assert (r.detections.status == "Detected").all() and r.failed_files == []
+    assert len(r.stock) == 93 and set(r.stock.branch) == {"BLT"} and r.stock.is_valid.all()
+    assert set(r.stock.stock_period) == {dt.date(2026, 11, 14)}
+    assert "NOT_CURRENT_MONTH" not in set(r.issues.code)
+    raw = pd.read_excel(f, header=None).iloc[2:]
+    assert r.stock.qty.sum() == pd.to_numeric(raw[8]).sum()

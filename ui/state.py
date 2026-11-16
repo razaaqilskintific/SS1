@@ -59,12 +59,12 @@ def _remote(url: str, nonce: int):
 def effective_mapping() -> Tuple[pd.DataFrame, dict, pd.DataFrame]:
     """(mapping used for processing, info, local layer). Local rows win over Google Sheets rows."""
     local = get_store().load()
-    info = {"source": "Lokal (database aplikasi)", "problems": [], "remote_rows": 0, "url": "", "error": ""}
+    info = {"source": "Lokal (app)", "problems": [], "remote_rows": 0, "url": "", "error": ""}
     url = sheet_url()
     if url:
         try:
             remote, problems = _remote(url, st.session_state.get("remote_nonce", 0))
-            info.update(source="Google Sheets + tambahan lokal", problems=problems, remote_rows=len(remote), url=url)
+            info.update(source="Google Sheets + lokal", problems=problems, remote_rows=len(remote), url=url)
             return ms.merge_mappings(remote, local), info, local
         except Exception as e:   # fall back to the local layer, but say so
             info["error"] = f"Gagal mengambil Google Sheets: {e}"
